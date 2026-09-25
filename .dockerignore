@@ -1,0 +1,11 @@
+__pycache__
+.env
+.git
+.venv
+venv
+*.pyc
+.idea
+.vscode
+alembic.ini
+alembic/versions/*
+!alembic/versions/.gitkeep
