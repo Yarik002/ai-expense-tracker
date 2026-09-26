@@ -74,8 +74,9 @@ async def main():
         settings_router,
     )
     
-    # Start dummy server for health checks
-    await start_dummy_server()
+    # Start dummy server for health checks (if not using Gradio)
+    if not os.environ.get("RUNNING_IN_GRADIO"):
+        await start_dummy_server()
     
     await dp.start_polling(bot)
 
