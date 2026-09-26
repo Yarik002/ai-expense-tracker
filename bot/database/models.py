@@ -21,6 +21,7 @@ class User(Base):
     is_blocked: Mapped[bool] = mapped_column(default=False)
     subscription_type: Mapped[str] = mapped_column(String(20), default="free")
     subscription_expires_at: Mapped[Optional[datetime]]
+    design_theme: Mapped[str] = mapped_column(String(20), server_default="standard")
     monthly_receipt_count: Mapped[int] = mapped_column(default=0)
     receipt_count_reset_at: Mapped[Optional[datetime]]
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())

@@ -48,22 +48,50 @@ def analytics_keyboard(is_premium: bool = False) -> InlineKeyboardMarkup:
         
     return builder.as_markup()
 
-def premium_keyboard() -> InlineKeyboardMarkup:
+def premium_keyboard(is_premium: bool = False) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
-    builder.button(text="⭐ Месяц (150 Stars)", callback_data="buy_monthly")
-    builder.button(text="⭐ Год (1500 Stars)", callback_data="buy_yearly")
-    builder.button(text="◀️ Назад", callback_data="back_menu")
-    builder.adjust(1, 1, 1)
+    if not is_premium:
+        builder.button(text="⭐ Месяц (150 Stars)", callback_data="buy_monthly")
+        builder.button(text="⭐ Год (1500 Stars)", callback_data="buy_yearly")
+        builder.button(text="◀️ Назад", callback_data="back_menu")
+        builder.adjust(1, 1, 1)
+    else:
+        builder.button(text="⭐ Продлить на год (1500 Stars)", callback_data="buy_yearly")
+        builder.button(text="◀️ Назад", callback_data="back_menu")
+        builder.adjust(1, 1)
     return builder.as_markup()
 
 def settings_keyboard(is_premium: bool = False) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.button(text="💱 Валюта", callback_data="set_currency")
+    
     if is_premium:
-        builder.button(text="🏷 Категории", callback_data="set_categories")
+        builder.button(text="🏷 Мои категории", callback_data="set_categories")
         builder.button(text="🎯 Бюджеты", callback_data="set_budgets")
+        builder.button(text="🎨 Оформление", callback_data="set_appearance")
+        builder.adjust(1, 2, 1, 1)
+    else:
+        builder.button(text="🔒 Категории (Premium)", callback_data="premium")
+        builder.button(text="🔒 Бюджеты (Premium)", callback_data="premium")
+        builder.button(text="🔒 Оформление (Premium)", callback_data="premium")
+        builder.adjust(1, 1, 1, 1, 1)
+        
     builder.button(text="◀️ Назад", callback_data="back_menu")
-    builder.adjust(1)
+    return builder.as_markup()
+
+def appearance_keyboard(current_theme: str = "standard") -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+    
+    t_std = "✅ Стандартная" if current_theme == "standard" else "Стандартная"
+    t_biz = "✅ Бизнес (Строгая)" if current_theme == "business" else "Бизнес (Строгая)"
+    t_min = "✅ Минимализм" if current_theme == "minimal" else "Минимализм"
+    
+    builder.button(text=t_std, callback_data="theme:standard")
+    builder.button(text=t_biz, callback_data="theme:business")
+    builder.button(text=t_min, callback_data="theme:minimal")
+    
+    builder.button(text="◀️ Назад", callback_data="settings")
+    builder.adjust(1, 1, 1, 1)
     return builder.as_markup()
 
 def currency_keyboard() -> InlineKeyboardMarkup:

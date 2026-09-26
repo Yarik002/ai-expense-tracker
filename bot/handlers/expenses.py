@@ -51,6 +51,32 @@ async def process_text_expense(message: Message, state: FSMContext, db_user: Use
     if not text:
         await message.answer("Пожалуйста, отправьте текст с описанием расхода.")
         return
+        
+    REPLY_BUTTONS = ["➕ Расход", "📸 Чек", "📊 Статистика", "⚙️ Настройки", "📋 Мои расходы", "ℹ️ О боте", "❌ Отмена"]
+    if text in REPLY_BUTTONS:
+        await state.clear()
+        if text == "📸 Чек":
+            from bot.handlers.receipts import prompt_receipt_photo
+            await prompt_receipt_photo(message, db_user)
+            return
+        elif text == "📊 Статистика":
+            from bot.handlers.analytics import quick_stats
+            await quick_stats(message, db_user)
+            return
+        elif text == "⚙️ Настройки":
+            from bot.handlers.settings import show_settings
+            await show_settings(message, db_user)
+            return
+        elif text == "📋 Мои расходы":
+            await _show_expenses(message, state, db_user)
+            return
+        elif text == "ℹ️ О боте":
+            from bot.handlers.start import send_about_info
+            await send_about_info(message, db_user)
+            return
+        else:
+            await message.answer("Действие отменено.")
+            return
 
     # Check weekly limits
     async with async_session() as session:
@@ -179,15 +205,34 @@ async def _show_expenses(event: Message | CallbackQuery, state: FSMContext, db_u
             text = "📭 У вас пока нет расходов.\n\nОтправьте текст или фото чека, чтобы добавить первый!"
             reply_markup = back_keyboard()
         else:
-            text = "<b>📋 ИСТОРИЯ РАСХОДОВ</b>\n\n"
+            theme = db_user.design_theme or "standard"
             expense_ids = []
-            for i, exp in enumerate(expenses, 1):
-                date_str = exp.created_at.strftime("%d.%m %H:%M") if exp.created_at else ""
-                cat_emoji = exp.category.emoji if exp.category else "🌀"
-                
-                amount_str = format_amount(exp.amount, exp.currency)
-                text += f"<b>{i}.</b> {cat_emoji} <b>{amount_str}</b>  |  {exp.description} <code>{date_str}</code>\n"
-                expense_ids.append(exp.id)
+            
+            if theme == "standard":
+                text = "<b>📋 ИСТОРИЯ РАСХОДОВ</b>\n\n"
+                for i, exp in enumerate(expenses, 1):
+                    date_str = exp.created_at.strftime("%d.%m %H:%M") if exp.created_at else ""
+                    cat_emoji = exp.category.emoji if exp.category else "🌀"
+                    amount_str = format_amount(exp.amount, exp.currency)
+                    text += f"<b>{i}.</b> {cat_emoji} <b>{amount_str}</b>  |  {exp.description} <code>{date_str}</code>\n"
+                    expense_ids.append(exp.id)
+            
+            elif theme == "business":
+                text = "📊 <b>ФИНАНСОВАЯ ВЫПИСКА</b>\n\n"
+                for i, exp in enumerate(expenses, 1):
+                    date_str = exp.created_at.strftime("%Y-%m-%d %H:%M") if exp.created_at else ""
+                    amount_str = format_amount(exp.amount, exp.currency)
+                    text += f"ID:{i:02d} | <b>{amount_str}</b> | {exp.description} | {date_str}\n"
+                    expense_ids.append(exp.id)
+            
+            elif theme == "minimal":
+                text = "<b>Траты:</b>\n\n"
+                for i, exp in enumerate(expenses, 1):
+                    amount_str = format_amount(exp.amount, exp.currency)
+                    text += f"▫️ {exp.description} — <b>{amount_str}</b>\n"
+                    expense_ids.append(exp.id)
+                    
+            text += "\n<i>Для удаления введите номер (например: 1 или 1-3)</i>"
             
             await state.update_data(last_shown_expenses=expense_ids)
             
@@ -220,6 +265,33 @@ async def start_delete_expenses(callback: CallbackQuery, state: FSMContext):
 @router.message(ExpenseStates.waiting_for_delete_range, F.text)
 async def process_delete_range(message: Message, state: FSMContext, db_user: User):
     text = message.text.strip()
+    
+    REPLY_BUTTONS = ["➕ Расход", "📸 Чек", "📊 Статистика", "⚙️ Настройки", "📋 Мои расходы", "ℹ️ О боте", "❌ Отмена"]
+    if text in REPLY_BUTTONS:
+        await state.clear()
+        if text == "📸 Чек":
+            from bot.handlers.receipts import prompt_receipt_photo
+            await prompt_receipt_photo(message, db_user)
+            return
+        elif text == "📊 Статистика":
+            from bot.handlers.analytics import quick_stats
+            await quick_stats(message, db_user)
+            return
+        elif text == "⚙️ Настройки":
+            from bot.handlers.settings import show_settings
+            await show_settings(message, db_user)
+            return
+        elif text == "📋 Мои расходы":
+            await _show_expenses(message, state, db_user)
+            return
+        elif text == "ℹ️ О боте":
+            from bot.handlers.start import send_about_info
+            await send_about_info(message, db_user)
+            return
+        else:
+            await message.answer("Действие отменено.")
+            return
+
     data = await state.get_data()
     expense_ids = data.get("last_shown_expenses", [])
     

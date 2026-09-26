@@ -85,3 +85,41 @@ async def set_budgets(callback: CallbackQuery, db_user: User):
         return
     await callback.message.edit_text("Ваши бюджеты: (в разработке)")
     await callback.answer()
+
+from bot.keyboards.inline import appearance_keyboard
+
+@router.callback_query(F.data == 'set_appearance')
+async def set_appearance(callback: CallbackQuery, db_user: User):
+    if db_user.subscription_type != 'premium':
+        await callback.answer("Только для Premium!", show_alert=True)
+        return
+        
+    current_theme = db_user.design_theme or "standard"
+    text = (
+        "🎨 <b>Оформление и Дизайн</b>\n\n"
+        "Здесь вы можете выбрать стиль, в котором бот будет выводить ваши расходы и отчеты.\n\n"
+        "Текущая тема: <b>" + current_theme.capitalize() + "</b>"
+    )
+    await callback.message.edit_text(text, reply_markup=appearance_keyboard(current_theme))
+    await callback.answer()
+
+@router.callback_query(F.data.startswith('theme:'))
+async def process_theme(callback: CallbackQuery, db_user: User):
+    if db_user.subscription_type != 'premium':
+        await callback.answer("Только для Premium!", show_alert=True)
+        return
+        
+    new_theme = callback.data.split(':')[1]
+    async with async_session() as session:
+        repo = UserRepository(session)
+        db_user.design_theme = new_theme
+        await repo.update(db_user)
+        
+    await callback.answer("✅ Тема успешно обновлена!")
+    # Перерисовываем меню
+    text = (
+        "🎨 <b>Оформление и Дизайн</b>\n\n"
+        "Здесь вы можете выбрать стиль, в котором бот будет выводить ваши расходы и отчеты.\n\n"
+        "Текущая тема: <b>" + new_theme.capitalize() + "</b>"
+    )
+    await callback.message.edit_text(text, reply_markup=appearance_keyboard(new_theme))

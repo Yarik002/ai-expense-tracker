@@ -9,16 +9,40 @@ from bot.keyboards.inline import premium_keyboard
 
 router = Router()
 
+@router.message(Command("premium"))
 @router.callback_query(F.data == 'premium')
-async def show_premium(callback: CallbackQuery, db_user: User):
-    text = (
-        "<b>Premium подписка</b>\n\n"
-        "• Безлимитное сканирование чеков\n"
-        "• Кастомные категории\n"
-        "• Бюджетирование\n"
-    )
-    await callback.message.edit_text(text, reply_markup=premium_keyboard())
-    await callback.answer()
+async def show_premium(event: Message | CallbackQuery, db_user: User):
+    async with async_session() as session:
+        sub_service = SubscriptionService(session)
+        is_prem = await sub_service.is_premium(db_user)
+        
+    if is_prem:
+        text = (
+            "💎 <b>У вас активна Premium подписка!</b>\n\n"
+            "Вам доступны все эксклюзивные функции:\n"
+            "• Безлимитное сканирование чеков\n"
+            "• Кастомные категории\n"
+            "• Бюджетирование и Умные графики\n"
+            "• Темы оформления\n\n"
+            f"<i>Подписка активна до: {db_user.subscription_expires_at.strftime('%d.%m.%Y')}</i>\n\n"
+            "Вы можете <b>выгодно продлить подписку на год</b> прямо сейчас (дни суммируются):"
+        )
+    else:
+        text = (
+            "<b>Premium подписка</b>\n\n"
+            "• Безлимитное сканирование чеков\n"
+            "• Кастомные категории\n"
+            "• Бюджетирование\n"
+            "• Умные графики и Excel-отчеты\n"
+            "• Темы оформления\n"
+        )
+        
+    markup = premium_keyboard(is_premium=is_prem)
+    if isinstance(event, CallbackQuery):
+        await event.message.edit_text(text, reply_markup=markup)
+        await event.answer()
+    else:
+        await event.answer(text, reply_markup=markup)
 
 @router.callback_query(F.data == 'buy_monthly')
 async def buy_monthly(callback: CallbackQuery, bot: Bot, db_user: User):

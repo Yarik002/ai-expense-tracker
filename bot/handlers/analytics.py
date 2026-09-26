@@ -20,7 +20,8 @@ async def quick_stats(message: Message, db_user: User):
         analytics = AnalyticsService(session)
         summary = await analytics.get_monthly_summary(db_user.id, now.year, now.month)
     
-    text = format_monthly_report(summary, db_user.currency)
+    theme = db_user.design_theme or "standard"
+    text = format_monthly_report(summary, db_user.currency, theme=theme)
     text += "\n\n📊 /menu → Аналитика для подробного анализа"
     await message.answer(text)
 
@@ -65,7 +66,8 @@ async def show_analytics_month(callback: CallbackQuery, db_user: User):
         analytics = AnalyticsService(session)
         summary = await analytics.get_monthly_summary(db_user.id, now.year, now.month)
     
-    text = format_monthly_report(summary, db_user.currency)
+    theme = db_user.design_theme or "standard"
+    text = format_monthly_report(summary, db_user.currency, theme=theme)
     await callback.message.edit_text(text, reply_markup=back_keyboard("analytics"))
     await callback.answer()
 

@@ -39,22 +39,50 @@ def format_expense_list(expenses: list, include_id: bool = False) -> str:
         lines.append(base)
     return "\n".join(lines)
 
-def format_monthly_report(summary: dict, currency: str = 'RUB') -> str:
+def format_monthly_report(summary: dict, currency: str = 'RUB', theme: str = "standard") -> str:
     total = format_amount(summary["total"], currency)
-    lines = [f"📊 <b>Отчет за месяц</b>\n", f"<b>Всего:</b> {total}\n"]
+    avg = format_amount(summary['avg_per_day'], currency)
     
-    if not summary["by_category"]:
-        lines.append("Нет расходов в этом месяце.")
+    if theme == "business":
+        lines = [f"📄 <b>ОТЧЕТ ЗА МЕСЯЦ</b>\n", f"Общая сумма: <b>{total}</b>\n"]
+        if not summary["by_category"]:
+            lines.append("Нет транзакций.")
+            return "\n".join(lines)
+            
+        lines.append("<b>Разбивка по категориям:</b>")
+        for cat in summary["by_category"]:
+            amount = format_amount(cat['total'], currency)
+            pct = f"{cat['percentage']:.1f}%"
+            lines.append(f"▪️ {cat['name'].upper()}: {amount} [{pct}]")
+        lines.append(f"\nСреднедневной расход: {avg}")
         return "\n".join(lines)
         
-    lines.append("<b>По категориям:</b>")
-    for cat in summary["by_category"]:
-        amount = format_amount(cat['total'], currency)
-        pct = f"{cat['percentage']:.1f}%"
-        lines.append(f"{cat['emoji']} {cat['name']}: {amount} ({pct})")
+    elif theme == "minimal":
+        lines = [f"<b>Итого: {total}</b>\n"]
+        if not summary["by_category"]:
+            lines.append("Пусто")
+            return "\n".join(lines)
+        for cat in summary["by_category"]:
+            amount = format_amount(cat['total'], currency)
+            lines.append(f"{cat['name']} - {amount}")
+        return "\n".join(lines)
+
+    else:
+        # Standard
+        lines = [f"📊 <b>Отчет за месяц</b>\n", f"<b>Всего:</b> {total}\n"]
         
-    lines.append(f"\nСредний расход в день: {format_amount(summary['avg_per_day'], currency)}")
-    return "\n".join(lines)
+        if not summary["by_category"]:
+            lines.append("Нет расходов в этом месяце.")
+            return "\n".join(lines)
+            
+        lines.append("<b>По категориям:</b>")
+        for cat in summary["by_category"]:
+            amount = format_amount(cat['total'], currency)
+            pct = f"{cat['percentage']:.1f}%"
+            lines.append(f"{cat['emoji']} {cat['name']}: {amount} ({pct})")
+            
+        lines.append(f"\nСредний расход в день: {avg}")
+        return "\n".join(lines)
 
 def format_comparison_report(comparison: dict, currency: str = 'RUB') -> str:
     curr = format_amount(comparison['current_total'], currency)
