@@ -19,6 +19,22 @@ from bot.handlers import (
 from bot.middlewares.auth import AuthMiddleware
 from bot.middlewares.throttling import ThrottlingMiddleware
 from bot.services.category_service import seed_default_categories
+from aiohttp import web
+import os
+
+async def health_check(request):
+    return web.Response(text="Bot is alive!")
+
+async def start_dummy_server():
+    """Starts a dummy aiohttp server to satisfy cloud providers (Render, Koyeb) that require binding to a PORT."""
+    app = web.Application()
+    app.router.add_get('/', health_check)
+    runner = web.AppRunner(app)
+    await runner.setup()
+    port = int(os.environ.get("PORT", 8080))
+    site = web.TCPSite(runner, '0.0.0.0', port)
+    await site.start()
+    logging.info(f"Dummy web server started on port {port}")
 
 
 async def on_startup(bot: Bot):
@@ -57,6 +73,9 @@ async def main():
         payments_router,
         settings_router,
     )
+    
+    # Start dummy server for health checks
+    await start_dummy_server()
     
     await dp.start_polling(bot)
 
