@@ -4,8 +4,7 @@ def main_reply_keyboard() -> ReplyKeyboardMarkup:
     return ReplyKeyboardMarkup(
         keyboard=[
             [KeyboardButton(text="➕ Расход"), KeyboardButton(text="📸 Чек")],
-            [KeyboardButton(text="📊 Статистика"), KeyboardButton(text="⚙️ Настройки")],
-            [KeyboardButton(text="🏠 Главное меню"), KeyboardButton(text="ℹ️ О боте")]
+            [KeyboardButton(text="📋 Мои расходы"), KeyboardButton(text="⚙️ Настройки")]
         ],
         resize_keyboard=True,
         one_time_keyboard=False

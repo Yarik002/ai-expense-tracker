@@ -66,12 +66,12 @@ async def main():
     
     dp.include_routers(
         start_router,
+        settings_router,
         expenses_router,
         receipts_router,
         analytics_router,
         admin_router,
         payments_router,
-        settings_router,
     )
     
     # Start dummy server for health checks (if not using Gradio)

@@ -7,11 +7,12 @@ def get_currency_symbol(currency: str) -> str:
     symbols = {
         'RUB': '₽',
         'USD': '$',
-        'EUR': '€'
+        'EUR': '€',
+        'BYN': 'Б̶'
     }
     return symbols.get(currency, currency)
 
-def format_amount(amount: Decimal, currency: str = 'RUB') -> str:
+def format_amount(amount: Decimal, currency: str = 'BYN') -> str:
     symbol = get_currency_symbol(currency)
     formatted = f"{amount:,.2f}".replace(',', ' ').replace('.', ',')
     if currency in ['USD', 'EUR']:
@@ -39,7 +40,7 @@ def format_expense_list(expenses: list, include_id: bool = False) -> str:
         lines.append(base)
     return "\n".join(lines)
 
-def format_monthly_report(summary: dict, currency: str = 'RUB', theme: str = "standard") -> str:
+def format_monthly_report(summary: dict, currency: str = 'BYN', theme: str = "standard") -> str:
     total = format_amount(summary["total"], currency)
     avg = format_amount(summary['avg_per_day'], currency)
     
@@ -84,7 +85,7 @@ def format_monthly_report(summary: dict, currency: str = 'RUB', theme: str = "st
         lines.append(f"\nСредний расход в день: {avg}")
         return "\n".join(lines)
 
-def format_comparison_report(comparison: dict, currency: str = 'RUB') -> str:
+def format_comparison_report(comparison: dict, currency: str = 'BYN') -> str:
     curr = format_amount(comparison['current_total'], currency)
     prev = format_amount(comparison['previous_total'], currency)
     diff = format_amount(abs(comparison['difference']), currency)

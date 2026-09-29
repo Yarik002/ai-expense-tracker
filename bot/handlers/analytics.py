@@ -278,3 +278,45 @@ async def smart_chart(callback: CallbackQuery, db_user: User):
     photo = URLInputFile(chart_url)
     await callback.message.answer_photo(photo=photo, caption=caption)
     await callback.answer()
+
+from bot.services.gemini_service import GeminiService
+
+from bot.services.gemini_service import GeminiService
+import asyncio
+
+@router.callback_query(F.data == 'ai_advice')
+async def ai_advice(callback: CallbackQuery, db_user: User):
+    if db_user.subscription_type != 'premium':
+        await callback.answer('⭐ Только для Premium!', show_alert=True)
+        return
+        
+    await callback.message.edit_text('🤖 Анализирую ваши финансы... Пожалуйста, подождите.')
+    
+    now = datetime.now()
+    async with async_session() as session:
+        from bot.services.analytics_service import AnalyticsService
+        analytics = AnalyticsService(session)
+        summary = await analytics.get_monthly_summary(db_user.id, now.year, now.month)
+        
+    expenses_text = ', '.join([f"{c['name']}: {c['total']}" for c in summary['by_category']])
+    
+    prompt = f"""
+Вы профессиональный и вежливый финансовый ИИ-советник. 
+У пользователя текущий баланс: {db_user.balance} {db_user.currency}.
+Траты за этот месяц по категориям: {expenses_text}.
+Напиши короткий (до 3-4 абзацев) полезный совет по личным финансам, учитывая эти данные. 
+Пиши дружелюбно, используй эмодзи и предложи, как лучше оптимизировать расходы или на чем сэкономить.
+"""
+    
+    gemini = GeminiService()
+    try:
+        def _generate():
+            return gemini.model.generate_content(prompt)
+        response = await asyncio.to_thread(_generate)
+        advice = response.text
+    except Exception as e:
+        advice = "❌ К сожалению, не удалось получить совет от ИИ в данный момент. Попробуйте позже."
+        
+    text = f"🤖 <b>Совет от Финансового ИИ</b>\n\n💵 Баланс: <b>{format_amount(db_user.balance, db_user.currency)}</b>\n\n{advice}"
+    await callback.message.edit_text(text, reply_markup=back_keyboard('analytics'))
+    await callback.answer()

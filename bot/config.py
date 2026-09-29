@@ -15,6 +15,10 @@ class Settings(BaseSettings):
     GEMINI_MODEL: str = "gemini-3.8-flash"
     GEMINI_VISION_MODEL: str = "gemini-3.8-flash"
     
+    # OpenRouter API (for auto-categorization)
+    OPENROUTER_API_KEY: str = ""
+    OPENROUTER_MODEL: str = "openai/gpt-4o-mini"
+    
     # Subscription pricing (Telegram Stars)
     MONTHLY_STARS_PRICE: int = 150
     YEARLY_STARS_PRICE: int = 1500

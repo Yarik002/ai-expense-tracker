@@ -23,7 +23,7 @@ Respond ONLY in JSON format:
   "store": "Store Name",
   "items": [{"name": "Item 1", "price": 100.50}],
   "total": 500.00,
-  "currency": "RUB",
+  "currency": "BYN",
   "date": "2024-01-15"
 }
 """
@@ -68,7 +68,7 @@ Respond with ONLY the category name, nothing else.
 Parse this free-form expense text into a description, amount, and currency.
 Text: "{text}"
 Return ONLY JSON:
-{{"description": "extracted description", "amount": 100.0, "currency": "RUB"}}
+{{"description": "extracted description", "amount": 100.0, "currency": "BYN"}}
 """
         def _generate():
             return self.model.generate_content(prompt)

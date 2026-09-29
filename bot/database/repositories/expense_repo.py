@@ -13,6 +13,13 @@ class ExpenseRepository:
     async def create(self, user_id: int, amount: Decimal, currency: str, description: str, 
                      source: str, category_id: Optional[int] = None, receipt_file_id: Optional[str] = None, 
                      raw_text: Optional[str] = None) -> Expense:
+        from bot.database.models import User
+        user_stmt = select(User).where(User.id == user_id)
+        user_res = await self.session.execute(user_stmt)
+        user = user_res.scalar_one_or_none()
+        if user:
+            user.balance -= amount
+
         expense = Expense(
             user_id=user_id,
             amount=amount,
@@ -86,6 +93,13 @@ class ExpenseRepository:
         result = await self.session.execute(stmt)
         expense = result.scalar_one_or_none()
         if expense:
+            from bot.database.models import User
+            user_stmt = select(User).where(User.id == user_id)
+            user_res = await self.session.execute(user_stmt)
+            user = user_res.scalar_one_or_none()
+            if user:
+                user.balance += expense.amount
+                
             await self.session.delete(expense)
             await self.session.commit()
             return True

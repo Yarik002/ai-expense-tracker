@@ -78,13 +78,34 @@ async def process_category_emoji(message: Message, state: FSMContext, db_user: U
     await message.answer(f"✅ Категория {emoji} {name} создана!")
     await state.clear()
 
+from bot.utils.formatters import format_amount
+from decimal import Decimal
+from bot.keyboards.inline import back_keyboard
+
 @router.callback_query(F.data == 'set_budgets')
-async def set_budgets(callback: CallbackQuery, db_user: User):
-    if db_user.subscription_type != 'premium':
-        await callback.answer("Только для Premium!", show_alert=True)
-        return
-    await callback.message.edit_text("Ваши бюджеты: (в разработке)")
+async def set_budgets(callback: CallbackQuery, state: FSMContext, db_user: User):
+    text = (
+        f"💵 <b>Ваши финансы (Баланс)</b>\n\n"
+        f"Текущий баланс: <b>{format_amount(db_user.balance, db_user.currency)}</b>\n\n"
+        "Отправьте мне новую сумму (просто число), чтобы обновить ваш баланс. "
+        "Эта сумма будет автоматически уменьшаться при каждом расходе!"
+    )
+    await callback.message.edit_text(text, reply_markup=back_keyboard("settings"))
+    await state.set_state(SettingsStates.waiting_for_budget_amount)
     await callback.answer()
+
+@router.message(SettingsStates.waiting_for_budget_amount, F.text)
+async def process_budget_amount(message: Message, state: FSMContext, db_user: User):
+    try:
+        new_balance = Decimal(message.text.replace(',', '.').replace(' ', ''))
+        async with async_session() as session:
+            repo = UserRepository(session)
+            db_user.balance = new_balance
+            await repo.update(db_user)
+        await message.answer(f"✅ Ваш баланс успешно обновлен: <b>{format_amount(new_balance, db_user.currency)}</b>")
+        await state.clear()
+    except Exception:
+        await message.answer("❌ Пожалуйста, введите корректное число (например: 1500.50).")
 
 from bot.keyboards.inline import appearance_keyboard
 
