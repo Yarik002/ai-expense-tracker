@@ -47,15 +47,24 @@ async def admin_users(callback: CallbackQuery, db_user: User):
         return
     async with async_session() as session:
         repo = UserRepository(session)
-        users = await repo.get_all_users(limit=20)
+        users = await repo.get_all_users(limit=50) # Увеличим лимит до 50
+        total_count = await repo.get_user_count()
         
-        text = "👥 <b>Последние 20 пользователей:</b>\n\n"
+        text = f"👥 <b>Пользователи (показано {len(users)} из {total_count}):</b>\n\n"
         for u in users:
-            plan = "⭐ Premium" if u.subscription_type == "premium" else "🆓 Free"
-            name = u.first_name or u.username or f"ID:{u.telegram_id}"
-            text += f"• {name} — {plan}\n"
+            plan = "⭐ Prem" if u.subscription_type == "premium" else "🆓 Free"
+            name = u.first_name or ""
+            if u.username:
+                name += f" (@{u.username})"
+            text += f"• <code>{u.telegram_id}</code> | {name} — {plan}\n"
             
-        await callback.message.edit_text(text, reply_markup=admin_keyboard())
+        try:
+            await callback.message.edit_text(text, reply_markup=admin_keyboard())
+        except Exception as e:
+            # Если текст слишком длинный, обрезаем
+            if len(text) > 4000:
+                text = text[:4000] + "...\n[Список обрезан]"
+                await callback.message.edit_text(text, reply_markup=admin_keyboard())
     await callback.answer()
 
 @router.callback_query(F.data == 'admin_revenue')
