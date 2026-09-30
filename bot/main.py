@@ -59,7 +59,12 @@ async def main():
     auth_middleware = AuthMiddleware(async_session)
     throttling_middleware = ThrottlingMiddleware()
     
+    from bot.middlewares.security import SecurityMiddleware
+    security_middleware = SecurityMiddleware()
+    
+    # Порядок: 1) Throttling (антиспам) -> 2) Security (защита от инъекций) -> 3) Auth (авторизация)
     dp.message.middleware(throttling_middleware)
+    dp.message.middleware(security_middleware)
     dp.message.middleware(auth_middleware)
     dp.callback_query.middleware(throttling_middleware)
     dp.callback_query.middleware(auth_middleware)
