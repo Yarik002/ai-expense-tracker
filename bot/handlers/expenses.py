@@ -234,6 +234,11 @@ async def process_expenses_page(callback: CallbackQuery, state: FSMContext, db_u
 async def show_expenses_callback(callback: CallbackQuery, state: FSMContext, db_user: User):
     await _show_expenses(callback, state, db_user)
 
+@router.message(F.text == "📋 Мои расходы")
+async def show_expenses_reply_button(message: Message, state: FSMContext, db_user: User):
+    await _show_expenses(message, state, db_user)
+
+
 
 async def _show_expenses(event: Message | CallbackQuery, state: FSMContext, db_user: User, page: int = 1):
     """Показывает последние 20 расходов."""
