@@ -86,6 +86,10 @@ async def process_receipt_photo(message: Message, bot: Bot, db_user: User, state
             text += f"\n<b>Итого:</b> {format_amount(total, expenses[0].currency)}"
             text += f"\n📦 Добавлено позиций: {len(expenses)}\n\n"
             
+            if getattr(db_user, 'is_balance_enabled', True):
+                db_user.balance -= total
+                text += f"💳 <b>Остаток баланса:</b> {format_amount(db_user.balance, db_user.currency)}\n\n"
+                
             if db_user.subscription_type == 'premium':
                 text += "💎 <i>Безлимитные сканирования (Premium)</i>"
             else:

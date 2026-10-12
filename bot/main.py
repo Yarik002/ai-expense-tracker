@@ -40,7 +40,13 @@ async def start_dummy_server():
 async def on_startup(bot: Bot):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-    
+        from sqlalchemy import text
+        try:
+            await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS balance NUMERIC(12, 2) DEFAULT 0.00;"))
+            await conn.execute(text("ALTER TABLE users ADD COLUMN IF NOT EXISTS is_balance_enabled BOOLEAN DEFAULT TRUE;"))
+        except Exception as e:
+            logging.warning(f"Migration check notice: {e}")
+            
     await seed_default_categories(async_session)
     logging.info("Bot started successfully")
 

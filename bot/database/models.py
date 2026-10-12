@@ -18,6 +18,7 @@ class User(Base):
     language_code: Mapped[str] = mapped_column(String(10), default="ru")
     currency: Mapped[str] = mapped_column(String(3), default="BYN")
     balance: Mapped[Decimal] = mapped_column(Numeric(12, 2), default=0.00, server_default="0.00")
+    is_balance_enabled: Mapped[bool] = mapped_column(default=True, server_default="true")
     is_admin: Mapped[bool] = mapped_column(default=False)
     is_blocked: Mapped[bool] = mapped_column(default=False)
     subscription_type: Mapped[str] = mapped_column(String(20), default="free")

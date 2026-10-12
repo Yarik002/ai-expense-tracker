@@ -19,14 +19,16 @@ class UserRepository:
         return result.scalar_one_or_none()
 
     async def create(self, telegram_id: int, username: Optional[str], first_name: str, 
-                     last_name: Optional[str], language_code: str, is_admin: bool = False) -> User:
+                     last_name: Optional[str], language_code: str, is_admin: bool = False,
+                     is_balance_enabled: bool = True) -> User:
         user = User(
             telegram_id=telegram_id,
             username=username,
             first_name=first_name,
             last_name=last_name,
             language_code=language_code,
-            is_admin=is_admin
+            is_admin=is_admin,
+            is_balance_enabled=is_balance_enabled
         )
         self.session.add(user)
         await self.session.commit()

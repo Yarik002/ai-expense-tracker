@@ -300,9 +300,12 @@ async def ai_advice(callback: CallbackQuery, db_user: User):
         
     expenses_text = ', '.join([f"{c['name']}: {c['total']}" for c in summary['by_category']])
     
+    is_balance_enabled = getattr(db_user, 'is_balance_enabled', True)
+    balance_prompt = f"У пользователя текущий баланс: {db_user.balance} {db_user.currency}." if is_balance_enabled else "У пользователя учет общего баланса отключен (ведется только учет расходов)."
+    
     prompt = f"""
 Вы профессиональный и вежливый финансовый ИИ-советник. 
-У пользователя текущий баланс: {db_user.balance} {db_user.currency}.
+{balance_prompt}
 Траты за этот месяц по категориям: {expenses_text}.
 Напиши короткий (до 3-4 абзацев) полезный совет по личным финансам, учитывая эти данные. 
 Пиши дружелюбно, используй эмодзи и предложи, как лучше оптимизировать расходы или на чем сэкономить.
@@ -317,6 +320,7 @@ async def ai_advice(callback: CallbackQuery, db_user: User):
     except Exception as e:
         advice = "❌ К сожалению, не удалось получить совет от ИИ в данный момент. Попробуйте позже."
         
-    text = f"🤖 <b>Совет от Финансового ИИ</b>\n\n💵 Баланс: <b>{format_amount(db_user.balance, db_user.currency)}</b>\n\n{advice}"
+    balance_header = f"💵 Баланс: <b>{format_amount(db_user.balance, db_user.currency)}</b>\n\n" if is_balance_enabled else ""
+    text = f"🤖 <b>Совет от Финансового ИИ</b>\n\n{balance_header}{advice}"
     await callback.message.edit_text(text, reply_markup=back_keyboard('analytics'))
     await callback.answer()

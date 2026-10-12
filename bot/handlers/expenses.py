@@ -153,11 +153,17 @@ async def process_text_expense(message: Message, state: FSMContext, db_user: Use
             sub_service = SubscriptionService(session)
             rem = await sub_service.get_remaining_manual_expenses(db_user)
         
+        balance_info = ""
+        if getattr(db_user, 'is_balance_enabled', True):
+            db_user.balance -= expense.amount
+            balance_info = f"💳 <b>Остаток баланса:</b> {format_amount(db_user.balance, db_user.currency)}\n\n"
+            
         msg_text = (
             f"✅ <b>Расход сохранён!</b>\n\n"
             f"📝 {expense.description}\n"
             f"💰 {format_amount(expense.amount, expense.currency)}\n"
             f"📂 Авто-категория: {best_cat.emoji} {best_cat.name}\n\n"
+            f"{balance_info}"
         )
         if db_user.subscription_type != 'premium':
             msg_text += f"<i>Осталось записей на этой неделе: {rem} из 50</i>"
@@ -199,10 +205,16 @@ async def process_category(callback: CallbackQuery, state: FSMContext, db_user: 
         sub_service = SubscriptionService(session)
         rem = await sub_service.get_remaining_manual_expenses(db_user)
     
+        balance_info = ""
+        if getattr(db_user, 'is_balance_enabled', True):
+            db_user.balance -= expense.amount
+            balance_info = f"💳 <b>Остаток баланса:</b> {format_amount(db_user.balance, db_user.currency)}\n\n"
+            
     msg_text = (
         f"✅ <b>Расход сохранён!</b>\n\n"
         f"📝 {expense.description}\n"
         f"💰 {format_amount(expense.amount, expense.currency)}\n\n"
+        f"{balance_info}"
     )
     if db_user.subscription_type != 'premium':
         msg_text += f"<i>Осталось записей на этой неделе: {rem} из 50</i>"

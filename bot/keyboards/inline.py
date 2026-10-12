@@ -62,10 +62,11 @@ def premium_keyboard(is_premium: bool = False) -> InlineKeyboardMarkup:
         builder.adjust(1, 1)
     return builder.as_markup()
 
-def settings_keyboard(is_premium: bool = False) -> InlineKeyboardMarkup:
+def settings_keyboard(is_premium: bool = False, is_balance_enabled: bool = True) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.button(text="💱 Валюта", callback_data="set_currency")
-    builder.button(text="💵 Мои финансы", callback_data="set_budgets")
+    status_str = "🟢 Вкл" if is_balance_enabled else "🔴 Выкл"
+    builder.button(text=f"💵 Мои финансы ({status_str})", callback_data="set_budgets")
     
     if is_premium:
         builder.button(text="🏷 Мои категории", callback_data="set_categories")
@@ -77,6 +78,30 @@ def settings_keyboard(is_premium: bool = False) -> InlineKeyboardMarkup:
         builder.adjust(1, 1, 1, 1)
         
     builder.button(text="◀️ Назад", callback_data="back_menu")
+    return builder.as_markup()
+
+def balance_keyboard(is_enabled: bool = True) -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+    
+    # Кнопка переключения учета
+    if is_enabled:
+        builder.button(text="🔴 Отключить учет баланса", callback_data="toggle_balance")
+    else:
+        builder.button(text="🟢 Включить учет баланса", callback_data="toggle_balance")
+        
+    # Кнопки операций с балансом
+    builder.button(text="➕ Пополнить (+)", callback_data="balance_add")
+    builder.button(text="➖ Уменьшить (-)", callback_data="balance_sub")
+    builder.button(text="✏️ Задать сумму", callback_data="balance_set")
+    builder.button(text="🗑 Сбросить (0.00)", callback_data="balance_reset")
+    
+    builder.button(text="◀️ Назад в настройки", callback_data="settings")
+    builder.adjust(1, 2, 2, 1)
+    return builder.as_markup()
+
+def cancel_balance_keyboard() -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+    builder.button(text="❌ Отмена", callback_data="set_budgets")
     return builder.as_markup()
 
 def appearance_keyboard(current_theme: str = "standard") -> InlineKeyboardMarkup:

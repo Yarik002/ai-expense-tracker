@@ -17,7 +17,7 @@ class ExpenseRepository:
         user_stmt = select(User).where(User.id == user_id)
         user_res = await self.session.execute(user_stmt)
         user = user_res.scalar_one_or_none()
-        if user:
+        if user and getattr(user, 'is_balance_enabled', True):
             user.balance -= amount
 
         expense = Expense(
@@ -97,7 +97,7 @@ class ExpenseRepository:
             user_stmt = select(User).where(User.id == user_id)
             user_res = await self.session.execute(user_stmt)
             user = user_res.scalar_one_or_none()
-            if user:
+            if user and getattr(user, 'is_balance_enabled', True):
                 user.balance += expense.amount
                 
             await self.session.delete(expense)
